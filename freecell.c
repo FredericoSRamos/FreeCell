@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <string.h>
 
 #define TOTAL_CARTAS 52
 
@@ -9,6 +8,7 @@ typedef struct
 {
     int val;
     char * naipe;
+    char cor;
 }
 carta;
 
@@ -54,191 +54,144 @@ int main()
 
     scanf("%c", &start);
 
-    int cartasDeck = 0;
+    int cartasDeck = 0, isValid = 1;
     int pegarCarta, jogarCarta, takeTracker, playTracker;
 
     node * temp;
 
     while (cartasDeck < 52)
     {
-        setarMesa (pilhas_jogo, pilhas_stack, pilhas_deck);
+        if (isValid == 1)
+            setarMesa (pilhas_jogo, pilhas_stack, pilhas_deck);
+        else
+            printf("\nJogada invalida\n\n");
 
-        RESET_PICK: printf("Digite de qual pilha deseja tirar a carta:\n");
-                    scanf("%d", &pegarCarta);
+        isValid = 0;
+
+        printf("Digite de qual pilha deseja tirar a carta:\n");
+        scanf("%d", &pegarCarta);
 
         if (pegarCarta == 0)
             break;
 
-        if (pegarCarta < 0 || pegarCarta > 12)
-        {
-            printf("\nPilha invalida\n\n");
-            goto RESET_PICK;
-        }
+        if (pegarCarta < 1 || pegarCarta > 12)
+            isValid = 1;
 
-        RESET_PLAY: printf("Digite em qual pilha deseja jogar a carta:\n");
-                    scanf("%d", &jogarCarta);
+        printf("Digite em qual pilha deseja jogar a carta:\n");
+        scanf("%d", &jogarCarta);
 
         if (jogarCarta == 0)
             break;
 
-        if (jogarCarta < 0 || jogarCarta > 16)
+        if (jogarCarta < 1 || jogarCarta > 16 || jogarCarta == pegarCarta)
+            isValid = 1;
+
+        if (isValid == 0)
         {
-            printf("\nPilha invalida\n\n");
-            goto RESET_PLAY;
-        }
-
-        if (jogarCarta == pegarCarta)
-            goto RESET_PICK;
-
-        if (pegarCarta > 8)
-        {
-            takeTracker = pegarCarta - 9;
-
-            if (pilhas_stack[takeTracker])
+            if (pegarCarta > 8)
             {
-                if (jogarCarta < 9)
+                takeTracker = pegarCarta - 9;
+
+                if (pilhas_stack[takeTracker])
                 {
-                    playTracker = jogarCarta - 1;
-
-                    if (pilhas_jogo[playTracker])
+                    if (jogarCarta < 9)
                     {
-                        temp = pilhas_jogo[playTracker];
+                        playTracker = jogarCarta - 1;
 
-                        while (temp->next)
-                            temp = temp->next;
-
-                        if (pilhas_stack[takeTracker]->select.val == temp->select.val - 1)
+                        if (pilhas_jogo[playTracker])
                         {
-                            if (pilhas_stack[takeTracker]->select.naipe[0] == 'C' || pilhas_stack[takeTracker]->select.naipe[0] == 'O')
+                            temp = pilhas_jogo[playTracker];
+
+                            while (temp->next)
+                                temp = temp->next;
+
+                            if (pilhas_stack[takeTracker]->select.val == temp->select.val - 1)
                             {
-                                if (temp->select.naipe[0] == 'P' || temp->select.naipe[0] == 'E')
+                                if (pilhas_stack[takeTracker]->select.cor != temp->select.cor)
                                 {
                                     temp->next = pilhas_stack[takeTracker];
                                     pilhas_stack[takeTracker] = NULL;
-                                }
-                                else
-                                {
-                                    printf("\nJogada invalida\n\n");
-                                    goto RESET_PICK;
-                                }
-                            }
-                            else
-                            {
-                                if (temp->select.naipe[0] == 'C' || temp->select.naipe[0] == 'O')
-                                {
-                                    temp->next = pilhas_stack[takeTracker];
-                                    pilhas_stack[takeTracker] = NULL;
-                                }
-                                else
-                                {
-                                    printf("\nJogada invalida\n\n");
-                                    goto RESET_PICK;
+                                    isValid = 1;
                                 }
                             }
                         }
                         else
                         {
-                            printf("\nJogada invalida\n\n");
-                            goto RESET_PICK;
+                            pilhas_jogo[playTracker] = pilhas_stack[takeTracker];
+                            pilhas_stack[takeTracker] = NULL;
+                            isValid = 1;
+                        }
+                    }
+                    else if (jogarCarta < 13)
+                    {
+                        playTracker = jogarCarta - 9;
+
+                        if (!pilhas_stack[playTracker])
+                        {
+                            pilhas_stack[playTracker] = pilhas_stack[takeTracker];
+                            pilhas_stack[takeTracker] = NULL;
+                            isValid = 1;
                         }
                     }
                     else
                     {
-                        pilhas_jogo[playTracker] = pilhas_stack[takeTracker];
-                        pilhas_stack[takeTracker] = NULL;
-                    }
-                }
-                else if (jogarCarta < 13)
-                {
-                    playTracker = jogarCarta - 9;
+                        playTracker = jogarCarta - 13;
 
-                    if (pilhas_stack[playTracker])
-                    {
-                        printf("\nJogada invalida\n\n");
-                        goto RESET_PICK;
-                    }
-                    else
-                    {
-                        pilhas_stack[playTracker] = pilhas_stack[takeTracker];
-                        pilhas_stack[takeTracker] = NULL;
-                    }
-                }
-                else
-                {
-                    playTracker = jogarCarta - 13;
-
-                    if (pilhas_deck[playTracker])
-                    {
-                        temp = pilhas_deck[playTracker];
-
-                        while (temp->next)
-                            temp = temp->next;
-
-                        if (pilhas_stack[takeTracker]->select.val == temp->select.val + 1 && pilhas_stack[takeTracker]->select.naipe[0] == temp->select.naipe[0])
+                        if (pilhas_deck[playTracker])
                         {
-                            temp->next = pilhas_stack[takeTracker];
-                            cartasDeck++;
-                            pilhas_stack[takeTracker] = NULL;
+                            temp = pilhas_deck[playTracker];
+
+                            if (pilhas_stack[takeTracker]->select.val == temp->select.val + 1 && pilhas_stack[takeTracker]->select.naipe[0] == temp->select.naipe[0])
+                            {
+                                pilhas_deck[playTracker] = pilhas_stack[takeTracker];
+                                free (temp);
+                                cartasDeck++;
+                                pilhas_stack[takeTracker] = NULL;
+                                isValid = 1;
+                            }
                         }
                         else
                         {
-                            printf("\nJogada invalida\n\n");
-                            goto RESET_PICK;
-                        }
-                    }
-                    else
-                    {
-                        if (pilhas_stack[takeTracker]->select.val == 1)
-                        {
-                            pilhas_deck[playTracker] = pilhas_stack[takeTracker];
-                            cartasDeck++;
-                            pilhas_stack[takeTracker] = NULL;
-                        }
-                        else
-                        {
-                            printf("\nJogada invalida\n\n");
-                            goto RESET_PICK;
+                            if (pilhas_stack[takeTracker]->select.val == 1)
+                            {
+                                pilhas_deck[playTracker] = pilhas_stack[takeTracker];
+                                cartasDeck++;
+                                pilhas_stack[takeTracker] = NULL;
+                                isValid = 1;
+                            }
                         }
                     }
                 }
             }
             else
             {
-                printf("\nJogada invalida\n\n");
-                goto RESET_PICK;
-            }
-        }
-        else
-        {
-            takeTracker = pegarCarta - 1;
+                takeTracker = pegarCarta - 1;
 
-            if (pilhas_jogo[takeTracker])
-            {
-                node * last = pilhas_jogo[takeTracker];
-                temp = last;
-
-                while (last->next)
+                if (pilhas_jogo[takeTracker])
                 {
+                    node * last = pilhas_jogo[takeTracker];
                     temp = last;
-                    last = last->next;
-                }
 
-                if (jogarCarta < 9)
-                {
-                    playTracker = jogarCarta - 1;
-
-                    if (pilhas_jogo[playTracker])
+                    while (last->next)
                     {
-                        node * tempPlay = pilhas_jogo[playTracker];
+                        temp = last;
+                        last = last->next;
+                    }
 
-                        while (tempPlay->next)
-                            tempPlay = tempPlay->next;
+                    if (jogarCarta < 9)
+                    {
+                        playTracker = jogarCarta - 1;
 
-                        if (last->select.val == tempPlay->select.val - 1)
+                        if (pilhas_jogo[playTracker])
                         {
-                            if (last->select.naipe[0] == 'C' || last->select.naipe[0] == 'O')
+                            node * tempPlay = pilhas_jogo[playTracker];
+
+                            while (tempPlay->next)
+                                tempPlay = tempPlay->next;
+
+                            if (last->select.val == tempPlay->select.val - 1)
                             {
-                                if (tempPlay->select.naipe[0] == 'P' || tempPlay->select.naipe[0] == 'E')
+                                if (last->select.cor != tempPlay->select.cor)
                                 {
                                     tempPlay->next = last;
 
@@ -246,125 +199,81 @@ int main()
                                         temp->next = NULL;
                                     else
                                         pilhas_jogo[takeTracker] = NULL;
-                                }
-                                else
-                                {
-                                    printf("\nJogada invalida\n\n");
-                                    goto RESET_PICK;
+
+                                    isValid = 1;
                                 }
                             }
+                        }
+                        else
+                        {
+                            pilhas_jogo[playTracker] = last;
+
+                            if (temp->next)
+                                temp->next = NULL;
                             else
+                                pilhas_jogo[takeTracker] = NULL;
+
+                            isValid = 1;
+                        }
+                    }
+                    else if (jogarCarta < 13)
+                    {
+                        playTracker = jogarCarta - 9;
+
+                        if (!pilhas_stack[playTracker])
+                        {
+                            pilhas_stack[playTracker] = last;
+
+                            if (temp->next)
+                                temp->next = NULL;
+                            else
+                                pilhas_jogo[takeTracker] = NULL;
+
+                            isValid = 1;
+                        }
+                    }
+                    else
+                    {
+                        playTracker = jogarCarta - 13;
+
+                        if (pilhas_deck[playTracker])
+                        {
+                            node * tempPlay = pilhas_deck[playTracker];
+
+                            if (last->select.val == tempPlay->select.val + 1)
                             {
-                                if (tempPlay->select.naipe[0] == 'C' || tempPlay->select.naipe[0] == 'O')
+                                if (last->select.naipe[0] == tempPlay->select.naipe[0])
                                 {
-                                    tempPlay->next = last;
+                                    pilhas_deck[playTracker] = last;
+                                    free (tempPlay);
+                                    cartasDeck++;
 
                                     if (temp->next)
                                         temp->next = NULL;
                                     else
                                         pilhas_jogo[takeTracker] = NULL;
-                                }
-                                else
-                                {
-                                    printf("\nJogada invalida\n\n");
-                                    goto RESET_PICK;
+
+                                    isValid = 1;
                                 }
                             }
                         }
                         else
                         {
-                            printf("\nJogada invalida\n\n");
-                            goto RESET_PICK;
-                        }
-                    }
-                    else
-                    {
-                        pilhas_jogo[playTracker] = last;
-
-                        if (temp->next)
-                            temp->next = NULL;
-                        else
-                            pilhas_jogo[takeTracker] = NULL;
-                    }
-                }
-                else if (jogarCarta < 13)
-                {
-                    playTracker = jogarCarta - 9;
-
-                    if (pilhas_stack[playTracker])
-                    {
-                        printf("\nJogada invalida\n\n");
-                        goto RESET_PICK;
-                    }
-                    else
-                    {
-                        pilhas_stack[playTracker] = last;
-
-                        if (temp->next)
-                            temp->next = NULL;
-                        else
-                            pilhas_jogo[takeTracker] = NULL;
-                    }
-                }
-                else
-                {
-                    playTracker = jogarCarta - 13;
-
-                    if (pilhas_deck[playTracker])
-                    {
-                        node * tempPlay = pilhas_deck[playTracker];
-
-                        while (tempPlay->next)
-                            tempPlay = tempPlay->next;
-
-                        if (last->select.val == tempPlay->select.val + 1)
-                        {
-                            if (last->select.naipe[0] == tempPlay->select.naipe[0])
+                            if (last->select.val == 1)
                             {
-                                tempPlay->next = last;
+                                pilhas_deck[playTracker] = last;
                                 cartasDeck++;
 
                                 if (temp->next)
                                     temp->next = NULL;
                                 else
                                     pilhas_jogo[takeTracker] = NULL;
-                            }
-                            else
-                            {
-                                printf("\nJogada invalida\n\n");
-                                goto RESET_PICK;
-                            }
-                        }
-                        else
-                        {
-                            printf("\nJogada invalida\n\n");
-                            goto RESET_PICK;
-                        }
-                    }
-                    else
-                    {
-                        if (last->select.val == 1)
-                        {
-                            pilhas_deck[playTracker] = last;
-                            cartasDeck++;
 
-                            if (temp->next)
-                                temp->next = NULL;
-                            else
-                                pilhas_jogo[takeTracker] = NULL;
-                        }
-                        else
-                        {
-                            printf("\nJogada invalida\n\n");
-                            goto RESET_PICK;
+                                isValid = 1;
+                            }
                         }
                     }
                 }
-            }
-            else
-            {
-                printf("\nJogada invalida\n\n");
-                goto RESET_PICK;
             }
         }
     }
@@ -385,10 +294,13 @@ void distribuirCartas (node ** pilhas_jogo)
 
     char * naipes[4] = {"Copas", "Ouros", "Espadas", "Paus"};
 
+    char cores[2] = {'V', 'P'};
+
     for (int cartas = 0; cartas < TOTAL_CARTAS; cartas++)
     {
         baralho[cartas].val = (cartas % 13) + 1;
         baralho[cartas].naipe = naipes[cartas / 13];
+        baralho[cartas].cor = cores[cartas / 26];
     }
 
     int total_cartas = TOTAL_CARTAS;
@@ -410,15 +322,17 @@ void distribuirCartas (node ** pilhas_jogo)
         }
     }
 
+    node * temp;
+
     for (int i = 0; i < 6; i++)
     {
         for (int j = 0; j < 8 && total_cartas > 0; j++)
         {
             random = rand() % total_cartas--;
 
-            node * temp = pilhas_jogo[j];
+            temp = pilhas_jogo[j];
 
-            while (temp->next != NULL)
+            while (temp->next)
                 temp = temp->next;
 
             temp->next = malloc(sizeof(node));
@@ -453,17 +367,7 @@ void setarMesa (node ** pilhas_jogo, node ** pilhas_stack, node ** pilhas_deck)
     for (int i = 0; i < 4; i++)
     {
         if (pilhas_deck[i])
-        {
-            print_temp[i] = pilhas_deck[i];
-
-            while (print_temp[i]->next)
-                print_temp[i] = print_temp[i]->next;
-
-            if (print_temp[i]->select.val == 13)
-                printf("\033[1;32mDONE\t\t\033[0m");
-            else
-                displayCards (print_temp[i]);
-        }
+            displayCards (pilhas_deck[i]);
         else
             printf("[]\t\t");
     }
@@ -521,42 +425,29 @@ void setarMesa (node ** pilhas_jogo, node ** pilhas_stack, node ** pilhas_deck)
 
 void displayCards (node * pilhas)
 {
+    if (pilhas->select.cor == 'V')
+        printf("\033[1;31m");
+    else
+        printf("\033[1;30m");
+
     switch(pilhas->select.val)
     {
-        case 1:
-            if (pilhas->select.naipe[0] == 'C' || pilhas->select.naipe[0] == 'O')
-                printf("\033[1;31mA - %s\t\033[0m", pilhas->select.naipe);
-            else
-                printf("\033[1;30mA - %s\t\033[0m", pilhas->select.naipe);
-        break;
+        case 1: printf("A - %s\t", pilhas->select.naipe);
+            break;
 
-        case 11:
-            if (pilhas->select.naipe[0] == 'C' || pilhas->select.naipe[0] == 'O')
-                printf("\033[1;31mJ - %s\t\033[0m", pilhas->select.naipe);
-            else
-                printf("\033[1;30mJ - %s\t\033[0m", pilhas->select.naipe);
-        break;
+        case 11: printf("J - %s\t", pilhas->select.naipe);
+            break;
 
-        case 12:
-            if (pilhas->select.naipe[0] == 'C' || pilhas->select.naipe[0] == 'O')
-                printf("\033[1;31mQ - %s\t\033[0m", pilhas->select.naipe);
-            else
-                printf("\033[1;30mQ - %s\t\033[0m", pilhas->select.naipe);
-        break;
+        case 12: printf("Q - %s\t", pilhas->select.naipe);
+            break;
 
-        case 13:
-            if (pilhas->select.naipe[0] == 'C' || pilhas->select.naipe[0] == 'O')
-                printf("\033[1;31mK - %s\t\033[0m", pilhas->select.naipe);
-            else
-                printf("\033[1;30mK - %s\t\033[0m", pilhas->select.naipe);
-        break;
+        case 13: printf("K - %s\t", pilhas->select.naipe);
+            break;
 
-        default:
-            if (pilhas->select.naipe[0] == 'C' || pilhas->select.naipe[0] == 'O')
-                printf("\033[1;31m%i - %s\t\033[0m", pilhas->select.val, pilhas->select.naipe);
-            else
-                printf("\033[1;30m%i - %s\t\033[0m", pilhas->select.val, pilhas->select.naipe);
+        default: printf("%i - %s\t", pilhas->select.val, pilhas->select.naipe);
     }
+
+    printf("\033[0m");
 }
 
 void freeStack (node ** pilhas_jogo, node ** pilhas_stack, node ** pilhas_deck)
@@ -565,19 +456,11 @@ void freeStack (node ** pilhas_jogo, node ** pilhas_stack, node ** pilhas_deck)
 
     for (int i = 0; i < 4; i++)
     {
-        while (pilhas_stack[i])
-        {
-            temp = pilhas_stack[i];
-            pilhas_stack[i] = pilhas_stack[i]->next;
-            free (temp);
-        }
+        if (pilhas_stack[i])
+            free (pilhas_stack[i]);
 
-        while (pilhas_deck[i])
-        {
-            temp = pilhas_deck[i];
-            pilhas_deck[i] = pilhas_deck[i]->next;
-            free (temp);
-        }
+        if (pilhas_deck[i])
+            free (pilhas_deck[i]);
 
         while (pilhas_jogo[i])
         {
