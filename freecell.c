@@ -110,7 +110,6 @@ int main()
                                 if (pilhas_stack[takeTracker]->select.cor != temp->select.cor)
                                 {
                                     temp->next = pilhas_stack[takeTracker];
-                                    pilhas_stack[takeTracker] = NULL;
                                     isValid = 1;
                                 }
                             }
@@ -118,7 +117,6 @@ int main()
                         else
                         {
                             pilhas_jogo[playTracker] = pilhas_stack[takeTracker];
-                            pilhas_stack[takeTracker] = NULL;
                             isValid = 1;
                         }
                     }
@@ -129,7 +127,6 @@ int main()
                         if (!pilhas_stack[playTracker])
                         {
                             pilhas_stack[playTracker] = pilhas_stack[takeTracker];
-                            pilhas_stack[takeTracker] = NULL;
                             isValid = 1;
                         }
                     }
@@ -139,14 +136,11 @@ int main()
 
                         if (pilhas_deck[playTracker])
                         {
-                            temp = pilhas_deck[playTracker];
-
                             if (pilhas_stack[takeTracker]->select.val == temp->select.val + 1 && pilhas_stack[takeTracker]->select.naipe[0] == temp->select.naipe[0])
                             {
+                                free (pilhas_deck[playTracker]);
                                 pilhas_deck[playTracker] = pilhas_stack[takeTracker];
-                                free (temp);
                                 cartasDeck++;
-                                pilhas_stack[takeTracker] = NULL;
                                 isValid = 1;
                             }
                         }
@@ -156,12 +150,13 @@ int main()
                             {
                                 pilhas_deck[playTracker] = pilhas_stack[takeTracker];
                                 cartasDeck++;
-                                pilhas_stack[takeTracker] = NULL;
                                 isValid = 1;
                             }
                         }
                     }
                 }
+                if (isValid == 1)
+                    pilhas_stack[takeTracker] = NULL;
             }
             else
             {
@@ -194,12 +189,6 @@ int main()
                                 if (last->select.cor != tempPlay->select.cor)
                                 {
                                     tempPlay->next = last;
-
-                                    if (temp->next)
-                                        temp->next = NULL;
-                                    else
-                                        pilhas_jogo[takeTracker] = NULL;
-
                                     isValid = 1;
                                 }
                             }
@@ -207,12 +196,6 @@ int main()
                         else
                         {
                             pilhas_jogo[playTracker] = last;
-
-                            if (temp->next)
-                                temp->next = NULL;
-                            else
-                                pilhas_jogo[takeTracker] = NULL;
-
                             isValid = 1;
                         }
                     }
@@ -223,12 +206,6 @@ int main()
                         if (!pilhas_stack[playTracker])
                         {
                             pilhas_stack[playTracker] = last;
-
-                            if (temp->next)
-                                temp->next = NULL;
-                            else
-                                pilhas_jogo[takeTracker] = NULL;
-
                             isValid = 1;
                         }
                     }
@@ -238,21 +215,13 @@ int main()
 
                         if (pilhas_deck[playTracker])
                         {
-                            node * tempPlay = pilhas_deck[playTracker];
-
-                            if (last->select.val == tempPlay->select.val + 1)
+                            if (last->select.val == pilhas_deck[playTracker]->select.val + 1)
                             {
-                                if (last->select.naipe[0] == tempPlay->select.naipe[0])
+                                if (last->select.naipe[0] == pilhas_deck[playTracker]->select.naipe[0])
                                 {
+                                    free (pilhas_deck[playTracker]);
                                     pilhas_deck[playTracker] = last;
-                                    free (tempPlay);
                                     cartasDeck++;
-
-                                    if (temp->next)
-                                        temp->next = NULL;
-                                    else
-                                        pilhas_jogo[takeTracker] = NULL;
-
                                     isValid = 1;
                                 }
                             }
@@ -263,16 +232,17 @@ int main()
                             {
                                 pilhas_deck[playTracker] = last;
                                 cartasDeck++;
-
-                                if (temp->next)
-                                    temp->next = NULL;
-                                else
-                                    pilhas_jogo[takeTracker] = NULL;
-
                                 isValid = 1;
                             }
                         }
                     }
+                }
+                if (isValid == 1)
+                {
+                    if (temp->next)
+                        temp->next = NULL;
+                    else
+                        pilhas_jogo[takeTracker] = NULL;
                 }
             }
         }
